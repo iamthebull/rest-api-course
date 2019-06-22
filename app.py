@@ -14,12 +14,6 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 app.secret_key = 'secretkey'
 jwt = JWT(app, authenticate, identity)
 
-
-@app.before_first_request
-def create_tables():
-    db.create_all()
-
-
 api = Api(app)
 api.add_resource(UsersRegister, '/register')
 
