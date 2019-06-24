@@ -1,24 +1,25 @@
-from flask_jwt import jwt_required
+from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token
 from flask_restful import Resource, reqparse
 
 from classlib.users import User
 
+_user_parser = reqparse.RequestParser()
+_user_parser.add_argument('username',
+                          type=str,
+                          required=True,
+                          help='Must supply a username.'
+                          )
+_user_parser.add_argument('password',
+                          type=str,
+                          required=True,
+                          help='Must supply a password.'
+                          )
+
 
 class UsersRegister(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('username',
-                        type=str,
-                        required=True,
-                        help='Must supply a username.'
-                        )
-    parser.add_argument('password',
-                        type=str,
-                        required=True,
-                        help='Must supply a password.'
-                        )
 
     def get(self):
-        data = UsersRegister.parser.parse_args()
+        data = _user_parser.parse_args()
         user = User(**data)
         user = user.get_by_username(user.username)
         if user:
@@ -26,7 +27,7 @@ class UsersRegister(Resource):
         return {'message': 'User not found.'}
 
     def post(self):
-        data = UsersRegister.parser.parse_args()
+        data = _user_parser.parse_args()
 
         if User.get_by_username(data['username']):
             return {'message': 'Username already exists.'}, 400
@@ -35,9 +36,9 @@ class UsersRegister(Resource):
         user.add_user()
         return user.json(), 201
 
-    @jwt_required()
+    @jwt_required
     def delete(self):
-        data = UsersRegister.parser.parse_args()
+        data = _user_parser.parse_args()
         user = User.get_by_username(data['username'])
         print(user.json())
         if user:
@@ -51,3 +52,17 @@ class UsersRegister(Resource):
 class AllUsers(Resource):
     def get(self):
         return {'Users': [user.json() for user in User.get_all()]}
+
+
+class UserLogin(Resource):
+    @classmethod
+    def post(cls):
+        data = _user_parser.parse_args()
+
+        user = User.get_by_username(data['username'])
+
+        if user and user.password == data['password']:
+            access_token = create_access_token(identity=user.id, fresh=True)
+            refresh_token = create_refresh_token(user.id)
+            return {'access_token': access_token, 'refresh_token': refresh_token}, 200
+        return {'message': 'Invalid credentials.'}, 401
