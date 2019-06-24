@@ -8,5 +8,6 @@ def authenticate(username, password):
 
 
 def identity(payload):
+    print(payload)
     user_id = payload['identity']
     return User.get_by_id(user_id)

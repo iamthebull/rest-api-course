@@ -46,3 +46,8 @@ class UsersRegister(Resource):
                 return user.json()
             return {'message': 'Incorrect password.'}, 400
         return {'message': 'User not found.'}, 404
+
+
+class AllUsers(Resource):
+    def get(self):
+        return {'Users': [user.json() for user in User.get_all()]}

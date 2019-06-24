@@ -4,7 +4,7 @@ from flask import Flask
 from flask_jwt import JWT
 from flask_restful import Api
 
-from resources.users import UsersRegister
+from resources.users import UsersRegister, AllUsers
 from auth import authenticate, identity
 
 app = Flask(__name__)
@@ -18,6 +18,7 @@ jwt = JWT(app, authenticate, identity)
 
 api = Api(app)
 api.add_resource(UsersRegister, '/register')
+api.add_resource(AllUsers, '/all')
 
 if __name__ == '__main__':
     from db import db
