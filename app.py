@@ -4,7 +4,7 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
 
-from resources.users import UsersRegister, AllUsers, UserLogin
+from resources.users import UsersRegister, AllUsers, UserLogin, TokenRefresh
 
 app = Flask(__name__)
 
@@ -27,6 +27,7 @@ api = Api(app)
 api.add_resource(UsersRegister, '/register')
 api.add_resource(AllUsers, '/all')
 api.add_resource(UserLogin, '/login')
+api.add_resource(TokenRefresh, '/refresh')
 
 if __name__ == '__main__':
     from db import db

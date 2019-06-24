@@ -1,4 +1,11 @@
-from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt_claims
+from flask_jwt_extended import (create_access_token,
+                                create_refresh_token,
+                                get_jwt_claims,
+                                get_jwt_identity,
+                                jwt_optional,
+                                jwt_refresh_token_required,
+                                jwt_required
+                                )
 from flask_restful import Resource, reqparse
 
 from classlib.users import User
@@ -52,8 +59,13 @@ class UsersRegister(Resource):
 
 
 class AllUsers(Resource):
+    @jwt_optional
     def get(self):
-        return {'Users': [user.json() for user in User.get_all()]}
+        user_id = get_jwt_identity()
+        if user_id:
+            return {'Users': [user.json() for user in User.get_all()]}, 200
+        return {'Users': [user.username for user in User.get_all()],
+                'message': 'More detail available if you log in.'}, 200
 
 
 class UserLogin(Resource):
@@ -68,3 +80,11 @@ class UserLogin(Resource):
             refresh_token = create_refresh_token(user.id)
             return {'access_token': access_token, 'refresh_token': refresh_token}, 200
         return {'message': 'Invalid credentials.'}, 401
+
+
+class TokenRefresh(Resource):
+    @jwt_refresh_token_required
+    def post(self):
+        current_user = get_jwt_identity()
+        new_token = create_access_token(identity=current_user, fresh=False)
+        return {'access_token': new_token}, 200
