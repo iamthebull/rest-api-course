@@ -3,12 +3,14 @@ from flask_jwt_extended import (create_access_token,
                                 fresh_jwt_required,
                                 get_jwt_claims,
                                 get_jwt_identity,
+                                get_raw_jwt,
                                 jwt_optional,
                                 jwt_refresh_token_required,
                                 jwt_required
                                 )
 from flask_restful import Resource, reqparse
 
+from blacklist import BLACKLIST
 from classlib.users import User
 
 _user_parser = reqparse.RequestParser()
@@ -58,6 +60,14 @@ class UsersRegister(Resource):
                 return user.json()
             return {'message': 'Incorrect password.'}, 400
         return {'message': 'User not found.'}, 404
+
+
+class UserLogout(Resource):
+    @jwt_required
+    def post(self):
+        jti = get_raw_jwt()['jti']
+        BLACKLIST.add(jti)
+        return {'message': 'Successfully logged out.'}
 
 
 class AllUsers(Resource):
