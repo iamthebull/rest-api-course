@@ -1,4 +1,4 @@
-from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token
+from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt_claims
 from flask_restful import Resource, reqparse
 
 from classlib.users import User
@@ -39,8 +39,10 @@ class UsersRegister(Resource):
     @jwt_required
     def delete(self):
         data = _user_parser.parse_args()
+        claims = get_jwt_claims()
+        if not claims['is_admin']:
+            return {'message': 'Admin privilege required to delete.'}
         user = User.get_by_username(data['username'])
-        print(user.json())
         if user:
             if user.password == data['password']:
                 user.del_user()
