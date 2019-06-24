@@ -1,5 +1,6 @@
 from flask_jwt_extended import (create_access_token,
                                 create_refresh_token,
+                                fresh_jwt_required,
                                 get_jwt_claims,
                                 get_jwt_identity,
                                 jwt_optional,
@@ -24,7 +25,7 @@ _user_parser.add_argument('password',
 
 
 class UsersRegister(Resource):
-
+    @jwt_required
     def get(self):
         data = _user_parser.parse_args()
         user = User(**data)
@@ -43,7 +44,8 @@ class UsersRegister(Resource):
         user.add_user()
         return user.json(), 201
 
-    @jwt_required
+    @fresh_jwt_required
+    # @jwt_required
     def delete(self):
         data = _user_parser.parse_args()
         claims = get_jwt_claims()
@@ -64,8 +66,9 @@ class AllUsers(Resource):
         user_id = get_jwt_identity()
         if user_id:
             return {'Users': [user.json() for user in User.get_all()]}, 200
-        return {'Users': [user.username for user in User.get_all()],
-                'message': 'More detail available if you log in.'}, 200
+        return {'Users': [user.json() for user in User.get_all()],
+                'message': 'More detail available if you log in.',
+                'user_id': user_id}, 200
 
 
 class UserLogin(Resource):
